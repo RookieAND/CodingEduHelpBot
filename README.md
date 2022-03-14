@@ -10,10 +10,12 @@ CodingEduHelpBot - 강의 도우미 봇
 
 ## [기본 구조] ##
 
+* src/ 내부 파일	
 	+ main.py : Bot의 핵심적인 동작 기능을 판별
 	+ timetable.py : 학생들의 타임테이블 이미지 및 시간 별 수업을 안내
 	+ embed.py : 봇에 쓰이는 Embed Message를 생성하고 호출
-	
+	+ 
+* config/ 내부 파일
 	+ config.yml : 서버의 기본적인 정보 저장
 	+ timetable.yml : 저장된 timetable을 json 형식으로 유지
 
