@@ -1,21 +1,23 @@
 import nextcord
 from nextcord.ext import commands
 import json
+from timetable import Timetable
 
 # data 파일에 저장된 config.json 을 로딩
 with open('./data/config.json') as f:
     config = json.load(f)
 
-
 intents = nextcord.Intents.default()
 intents.members = True
-activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="코딩 교육 강의 도움")
+activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="코딩 교육 강의")
 bot = commands.Bot(command_prefix='!', help_command=None, activity=activity, intents=intents)
 
 # 하위 목록으로 설정한 Bot Extension 을 로드하여 실행시킴.
 bot.load_extension('event')
 bot.load_extension('command')
 
+tt = Timetable()
+print(tt.find_student("Mon", "18"))
 
 @bot.event
 async def on_ready():
@@ -24,6 +26,7 @@ async def on_ready():
     print("{0:^41}".format("Created By RookieAND_"))
     print("=" * 41)
 
+# try-except 를 통해 token 값이 맞지 않을 경우 에러 메세지 출력
 try:
     bot.run(config["TOKEN"])
 except nextcord.errors.LoginFailure:
