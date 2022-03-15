@@ -60,23 +60,29 @@ class EmbedMessage(nextcord.Embed):
             self.embed.add_field(name=":student: 수강 과목 선택 완료!", value=f"성공적으로 {lang} 과목을 선택했습니다!")
         return self.embed
 
+
 class SelectClassView(View):
 
     def __init__(self):
         super().__init__()
         self.lang = None
-        self.timeout = 10.0
         self.role = {"Python": 947519272278708224, "MakeCode": 947517959474139146}
         self.embed = EmbedMessage()
 
     @nextcord.ui.button(label='Python', style=nextcord.ButtonStyle.primary, row=0)
-    async def select_python(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def select_python(self, interaction: nextcord.Interaction):
         self.lang = "Python"
         self.stop()
-        await interaction.response.send_message(embed=self.embed.select_lang(self.lang), ephemeral=True, delete_after=3.0)
+        await interaction.response.send_message(
+            embed=self.embed.select_lang(self.lang),
+            ephemeral=True, delete_after=3.0
+        )
 
     @nextcord.ui.button(label='MakeCode', style=nextcord.ButtonStyle.secondary, row=0)
-    async def select_makecode(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+    async def select_makecode(self, interaction: nextcord.Interaction):
         self.lang = "MakeCode"
         self.stop()
-        await interaction.response.send_message(embed=self.embed.select_lang(self.lang), ephemeral=True, delete_after=3.0)
+        await interaction.response.send_message(
+            embed=self.embed.select_lang(self.lang),
+            ephemeral=True, delete_after=3.0
+        )

@@ -1,27 +1,22 @@
-from custom import EmbedMessage, SelectClassView
 import nextcord
 from nextcord.ext import commands
+import json
+
+# data 파일에 저장된 config.json 을 로딩
+with open('./data/config.json') as f:
+    config = json.load(f)
 
 
-# 봇의 기본 설정을 작성하는 섹션
-class CodingBot:
-    def __init__(self):
-        self.intents = nextcord.Intents.default()
-        self.intents.members = True
-        self.bot_activity = nextcord.Game(name='코딩 교육 강의')
-        self.cmd_prefix = '!'
-        self.token = 'ODcwNjUxNTU0ODg0MTA4Mjg4.YQP3cg.hhMrNP45jCruAG8Ha8Sy51ZYdI8'
+intents = nextcord.Intents.default()
+intents.members = True
+activity = nextcord.Activity(type=nextcord.ActivityType.watching, name="코딩 교육 강의 도움")
+bot = commands.Bot(command_prefix='!', help_command=None, activity=activity, intents=intents)
+
+# 하위 목록으로 설정한 Bot Extension 을 로드하여 실행시킴.
+bot.load_extension('event')
+bot.load_extension('command')
 
 
-cdBot = CodingBot()
-embed = EmbedMessage()
-bot = commands.Bot(
-    command_prefix=cdBot.cmd_prefix, help_command=None,
-    activity=cdBot.bot_activity, intents=cdBot.intents
-)
-
-
-# 봇의 이벤트를 진행하는 섹션
 @bot.event
 async def on_ready():
     print("=" * 41)
@@ -29,41 +24,10 @@ async def on_ready():
     print("{0:^41}".format("Created By RookieAND_"))
     print("=" * 41)
 
-
-@bot.command()
-async def on_member_join(member):
-    channel = member.guild.system_channel
-    if channel is not None:
-        channel.send(embed=embed.welcome())
-
-
-@bot.command()
-async def lesson(ctx, *args):
-    if not args:
-        await ctx.send(embed=embed.command())
-        return
-    elif len(args) == 1:
-        if args[0] == "introduce":
-            await ctx.send(f"{ctx.author.mention} 님, 코딩 교육 강사인 저에 대한 소개를 하겠습니다.", embed=embed.introduce())
-            return
-        elif args[0] == "question":
-            await ctx.send(f"{ctx.author.mention} 님! 코딩 교육 디스코드 서버에 오신 것을 환영해요!", embed=embed.welcome())
-            return
-        elif args[0] == "select":
-            view = SelectClassView()
-            await ctx.send(
-                    f"{ctx.author.mention} 님! 하단의 항목 중에서 수강한 과목을 눌러주세요!",
-                    embed=embed.select_lang(None), view=view, delete_after=10.0
-                )
-            # 해당 View의 Interaction 이 진행되지 전까지 실행을 기다림
-            await view.wait()
-            # 만약 시간 내에 역할을 선택하지 않았다면, 선택이 취소되었다는 안내 메세지 출력
-            if view.lang is None:
-                await ctx.send(f"{ctx.author.mention} 님! 시간이 초과되어 과목 선택이 취소되었습니다!", delete_after=3.0)
-            # 그렇지 않을 경우, 성공적으로 역할이 배정되었다는 메세지를 출력시킴.
-            else:
-                ctx.author.get_role(role_id=view.role[view.lang])
-    else:
-        await ctx.send(embed=embed.command())
-
-bot.run(cdBot.token)
+try:
+    bot.run(config["TOKEN"])
+except nextcord.errors.LoginFailure:
+    print("config.json 에서 기입한 Token에 해당되는 봇을 찾지 못했습니다.")
+    print("사용 중인 봇의 Token 값을 다시 한번 더 확인하시고 봇을 실행하세요.")
+except RuntimeError:
+    print("알 수 없는 오류로 인해 봇이 강제로 종료되었습니다.")
