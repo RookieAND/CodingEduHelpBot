@@ -1,4 +1,4 @@
-from custom import EmbedMessage
+from src.custom import EmbedMessage
 from nextcord.ext import commands
 
 

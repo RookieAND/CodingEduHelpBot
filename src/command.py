@@ -3,6 +3,7 @@ from nextcord.ext import commands
 from timetable import Timetable
 
 timetable = Timetable()
+weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
 
 
 class BotCommands(commands.Cog):
@@ -38,27 +39,54 @@ class BotCommands(commands.Cog):
                     role = guild.get_role(view.role[view.lang])
                     await guild.get_member(ctx.author.id).add_roles(role)
         else:
-            await ctx.send(embed=self.embed.command())
+            await ctx.send("테스트", embed=self.embed.command())
 
     @commands.command(name="timetable")
     async def timetable(self, ctx, *args):
         if not args:
             await ctx.send(embed=self.embed.command())
             return
-        elif len(args) == 1:
-            weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
-            if args[0] in weekday:
-                day = args[0]
-                class_info = timetable.get_day_class(day)
+        if args[0] in weekday:
+            day = args[0]
+            class_info = timetable.get_day_class(day)
+            await ctx.send(
+                f"{ctx.author.mention} 님, **{weekday[day]}**의 시간표를 가져왔어요! 한번 봐주세요!",
+                embed=self.embed.timetable_daily(class_info)
+            )
+            return
+        else:
+            await ctx.send(
+                f"{ctx.author.mention} 님, 요일은 영어로만 입력이 가능해요!", embed=self.embed.timetable_daily_failed()
+            )
+            return
+        await ctx.send(embed=self.embed.command())
+
+    # 시간표 수정 명령어 : !timemod add/del <요일> <시간> <학생> <과목>
+    @commands.command(name="timemod")
+    @commands.has_permissions(kick_members=True)
+    async def timemod(self, ctx, *args):
+        if args[0] == "add" and len(args) == 5:
+            if args[1] in weekday and 18 <= int(args[2]) < 21 and args[4] in ["Python", "MakeCode"]:
+                timetable.add_student(args[1], args[2], args[3], args[4])
+                class_info = timetable.get_day_class(args[1])
                 await ctx.send(
-                    f"{ctx.author.mention} 님, **{weekday[day]}**의 시간표를 가져왔어요! 한번 봐주세요!",
-                    embed=self.embed.timetable_daily(weekday[day], class_info)
+                    f"{ctx.author.mention} 님, 성공적으로 **{args[3]}** 학생의 수업을 추가했어요!",
+                    embed=self.embed.timetable_modify(class_info, "add")
                 )
                 return
-            else:
-                await ctx.send(f"{ctx.author.mention} 님, 요일은 영어로만 입력이 가능해요!.", embed=self.embed.timetable_daily_failed())
-        else:
-            await ctx.send(embed=self.embed.command())
+        elif args[0] == "del" and len(args) == 3:
+            if args[1] in weekday and 18 <= int(args[2]) < 21:
+                timetable.remove_student(args[1], args[2])
+                class_info = timetable.get_day_class(args[1])
+                await ctx.send(
+                    f"{ctx.author.mention} 님, 성공적으로 **{weekday[args[1]]} {args[2]}시** 의 수업을 삭제했어요!",
+                    embed=self.embed.timetable_modify(class_info, "del")
+                )
+                return
+        await ctx.send(
+            f"{ctx.author.mention} 님, 명령어 입력을 잘못한 것 같아요!.",
+            embed=self.embed.timetable_modify_failed()
+        )
 
 
 def setup(bot):
