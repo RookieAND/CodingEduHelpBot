@@ -33,13 +33,16 @@ class BotCommands(commands.Cog):
                 if view.lang is None:
                     await ctx.send(
                         f"{ctx.author.mention} 님! 시간이 지나 과목 선택이 취소 되었습니다!",
-                        embed=self.embed.select_lang_failed(), delete_after=5.0)
+                        embed=self.embed.select_lang_failed(), delete_after=10.0)
                 else:
                     guild = ctx.guild
                     role = guild.get_role(view.role[view.lang])
                     await guild.get_member(ctx.author.id).add_roles(role)
         else:
-            await ctx.send("테스트", embed=self.embed.command())
+            await ctx.send(
+                f"{ctx.author.mention} 님! 명령어를 잘못 입력하신 것 같습니다!",
+                embed=self.embed.command()
+            )
 
     @commands.command(name="timetable")
     async def timetable(self, ctx, *args):
