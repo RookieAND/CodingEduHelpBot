@@ -157,15 +157,15 @@ class EmbedMessage:
         embed.add_field(name=':x: 열람 실패', value='\n올바른 요일을 작성하지 않았습니다.')
         return embed
 
-    def timetable_modify(self, class_info: list, statue: str):
+    def timetable_modify(self, class_info: list, status: str):
         modify = {"add": "추가", "del": "삭제"}
         self.embed['title'] = ":alarm_clock:  수업 시간표 수정"
         self.embed['description'] = f"""
-            성공적으로 해당 시간대의 수업표를 {modify[statue]}했어요!
+            성공적으로 해당 시간대의 수업표를 {modify[status]}했어요!
             아래에 수정하신 시간표의 정보를 보여드릴게요!
             
-            :white_check_mark: **{modify[statue]} 완료**
-            성공적으로 시간표를 {modify[statue]}했습니다!
+            :white_check_mark: **{modify[status]} 완료**
+            성공적으로 시간표를 {modify[status]}했습니다!
             ⠀
             """
 
@@ -187,7 +187,36 @@ class EmbedMessage:
 
         return embed
 
-    def timetable_modify_failed(self):
+    def timetable_modify_failed(self, status: str):
+        self.embed['title'] = ":alarm_clock:  수업 시간표 수정"
+        if status == "add":
+            self.embed['description'] = """
+                이미 해당 시간대에는 다른 수업이 존재해요.
+                만약 이를 바꾸고 싶다면 먼저 해당 시간대에
+                저장된 수업을 제거해주셔야 등록이 가능해요!
+    
+                삭제 : **[!timemod del <요일> <시간>]**
+    
+                제대로 삭제이 되었다면 수업이 추기될 거에요!
+                ⠀⠀
+                """
+            embed = nextcord.Embed.from_dict(self.embed)
+            embed.add_field(name=':x: 수정 실패', value="\n이미 해당 시간대에 수업이 존재합니다.")
+        elif status == "del":
+            self.embed['description'] = """
+                이미 해당 시간대에는 수업이 없는 상태에요...
+                수업 삭제는 오직 존재하는 시간에만 가능해요!
+
+                추가 : **[!timemod add <요일> <시간> <이름> <과목>]**
+
+                우선, 빈 시간표를 먼저 채워보는 건 어떨까요?
+                ⠀⠀
+                """
+            embed = nextcord.Embed.from_dict(self.embed)
+            embed.add_field(name=':x: 삭제 실패', value="\n해당 시간대에 수업이 존재하지 않습니다.")
+        return embed
+
+    def timetable_modify_wrong(self):
         self.embed['title'] = ":alarm_clock:  수업 시간표 수정"
         self.embed['description'] = """
             이런, 수정 명령어를 잘못 입력한 것 같아요!
@@ -202,7 +231,7 @@ class EmbedMessage:
         embed = nextcord.Embed.from_dict(self.embed)
         embed.add_field(name=':x: 수정 실패', value="\n명령어 양식이 올바르지 않습니다.")
 
-        return nextcord.Embed.from_dict(embed)
+        return embed
 
 
 class SelectClassView(View):

@@ -68,27 +68,46 @@ class BotCommands(commands.Cog):
     @commands.command(name="timemod")
     @commands.has_permissions(kick_members=True)
     async def timemod(self, ctx, *args):
+        if not args:
+            await ctx.send(
+                f"{ctx.author.mention} 님, timemod 명령어 정보를 가지고 왔어요!",
+                embed=self.embed.timetable_modify_wrong()
+            )
+            return
         if args[0] == "add" and len(args) == 5:
             if args[1] in weekday and 18 <= int(args[2]) < 21 and args[4] in ["Python", "MakeCode"]:
-                timetable.add_student(args[1], args[2], args[3], args[4])
+                status = timetable.add_student(args[1], args[2], args[3], args[4])
                 class_info = timetable.get_day_class(args[1])
-                await ctx.send(
-                    f"{ctx.author.mention} 님, 성공적으로 **{args[3]}** 학생의 수업을 추가했어요!",
-                    embed=self.embed.timetable_modify(class_info, "add")
-                )
+                # 만약 수업의 추가가 정상적으로 이루어졌다면, 해당 Embed 메세지를 출력.
+                if status is True:
+                    await ctx.send(
+                        f"{ctx.author.mention} 님, 성공적으로 **{args[3]}** 학생의 수업을 추가했어요!",
+                        embed=self.embed.timetable_modify("add")
+                    )
+                else:
+                    await ctx.send(
+                        f"{ctx.author.mention} 님, 해당 시간대에는 이미 다른 수업이 존재해요!",
+                        embed=self.embed.timetable_modify_failed("add")
+                    )
                 return
         elif args[0] == "del" and len(args) == 3:
             if args[1] in weekday and 18 <= int(args[2]) < 21:
-                timetable.remove_student(args[1], args[2])
+                status = timetable.remove_student(args[1], args[2])
                 class_info = timetable.get_day_class(args[1])
-                await ctx.send(
-                    f"{ctx.author.mention} 님, 성공적으로 **{weekday[args[1]]} {args[2]}시** 의 수업을 삭제했어요!",
-                    embed=self.embed.timetable_modify(class_info, "del")
-                )
+                if status is True:
+                    await ctx.send(
+                        f"{ctx.author.mention} 님, 성공적으로 **{weekday[args[1]]} {args[2]}시** 의 수업을 삭제했어요!",
+                        embed=self.embed.timetable_modify(class_info, "del")
+                    )
+                else:
+                    await ctx.send(
+                        f"{ctx.author.mention} 님, 해당 시간대에는 이미 수업이 존재하지 않아요!",
+                        embed=self.embed.timetable_modify_failed("del")
+                    )
                 return
         await ctx.send(
             f"{ctx.author.mention} 님, 명령어 입력을 잘못한 것 같아요!.",
-            embed=self.embed.timetable_modify_failed()
+            embed=self.embed.timetable_modify_wrong()
         )
 
 

@@ -31,8 +31,8 @@ async def on_ready():
 if __name__ == "__main__":
     try:
         bot.run(config["TOKEN"])
+    except RuntimeError:
+        print("알 수 없는 오류로 인해 봇이 강제로 종료되었습니다.")
     except nextcord.errors.LoginFailure:
         print("config.json 에서 기입한 Token에 해당되는 봇을 찾지 못했습니다.")
         print("사용 중인 봇의 Token 값을 다시 한번 더 확인하시고 봇을 실행하세요.")
-    except RuntimeError:
-        print("알 수 없는 오류로 인해 봇이 강제로 종료되었습니다.")

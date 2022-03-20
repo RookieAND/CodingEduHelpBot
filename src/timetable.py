@@ -17,17 +17,26 @@ class Timetable:
         return self.json[day][time]
 
     # 특정 수업 시간에 학생의 수강 정보를 집어 넣는 함수
-    def add_student(self, day: str, time: str, student: str, lang: str) -> None:
+    # True 리턴 시 새롭게 정보를 추가했다는 뜻, False 리턴 시 기존의 정보가 있어 추가가 취소되었다는 뜻.
+    def add_student(self, day: str, time: str, student: str, lang: str) -> bool:
         class_info = self.json[day][time]
         if class_info["Student"] is None or class_info["Class"] is None:
             self.json[day][time].update({"Student": student, "Class": lang})
             self.reload()
+            return True
+        else:
+            return False
 
     # 특정 수업 시간에 학생의 수강 정보를 삭제하는 함수
-    def remove_student(self, day: str, time: str) -> None:
+    # True 리턴 시 정상적으로 정보 삭제, False 출력 시 삭제할 정보가 없다는 뜻.
+    def remove_student(self, day: str, time: str) -> bool:
         class_info = self.json[day][time]
-        class_info.update({"Student": None, "Class": None})
-        self.reload()
+        if class_info["Student"] is None or class_info["Class"] is None:
+            return False
+        else:
+            class_info.update({"Student": None, "Class": None})
+            self.reload()
+            return True
 
     # 특정 요일의 시간표 정보를 List[Tuple(시간, 학생, 과목)] 으로 return 해주는 함수
     def get_day_class(self, day: str) -> list:
