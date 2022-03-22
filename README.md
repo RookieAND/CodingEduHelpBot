@@ -11,26 +11,30 @@ CodingEduHelpBot - 강의 도우미 봇
 ## [기본 구조] ##
 
 * src/ 내부 파일	
-	+ main.py : Bot의 핵심적인 동작 기능을 판별
-	+ timetable.py : 학생들의 타임테이블 이미지 및 시간 별 수업을 안내
-	+ embed.py : 봇에 쓰이는 Embed Message를 생성하고 호출
+    + main.py : Bot의 핵심적인 동작 기능을 판별
+    + timetable.py : 학생들의 시간표 안내 및 시간 별 수업 정보 제공
+    + custom.py : 봇에 쓰이는 Embed Message를 생성하고 호출
+    + command.py : 봇에 쓰이는 command 를 관리하고 실행
+    + event.py : 디스코드의 각종 이벤트를 핸들링하고 관리
+
+  
 * config/ 내부 파일
-	+ config.yml : 서버의 기본적인 정보 저장
+	+ config.yml : 서버의 기본적인 정보 및 역할 ID 저장
 	+ timetable.yml : 저장된 timetable을 json 형식으로 유지
 
 ## [세부 기능] ##
 #### 1. 지원 명령어 ####
 	
-	- !lesson introduce : 강사 소개
+	- !lesson author : 강사 소개
 	- !lesson question : 강사에게 질문 전송
+	- !lesson select : 수강하고자 하는 과목 역할 선택
 	
 	- !materials python : Python 수업을 하기 전, 실행해야 하는 프로그램을 안내합니다.
 	- !materials Makecode : MakeCode 수업을 하기 전, 실행해야 하는 프로그램을 안내합니다.
-	
-	- !timetable : 일주일의 수업 시간을 img로 변환
+
 	- !timetable <요일> : 특정 요일의 수업 시간을 반환	
-	- !timetable add <이름> <요일> <시간> : 특정 학생에게 시간표를 할당
-	- !timetable remove <이름> : 특정 학생에게 할당되었던 시간표를 제거
+	- !timeadd <이름> <요일> <시간> : 특정 학생에게 시간표를 할당
+	- !timedel <이름> : 특정 학생에게 할당되었던 시간표를 제거
 #### 2. 지원 이벤트 ####
 
 	- 새로운 학생이 서버에 접속했을 때, 안내 메세지를 출력시킵니다.
