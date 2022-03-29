@@ -1,6 +1,5 @@
 {
-    "TOKEN": "PUT_YOUR_BOT_TOKEN_ID_HERE",
-    "TRIAL_ROLE_ID": "",
-    "PYTHON_ROLE_ID": "",
-    "MAKECODE_ROLE_ID": ""
+    "TOKEN": "insert-your-token",
+    "PYTHON_ROLE_ID": "insert-your-id",
+    "MAKECODE_ROLE_ID": "insert-your-id"
 }

@@ -1,51 +1,104 @@
+from typing import Dict, Any, Tuple
+
+import pymysql
+import pymysql.cursors
+import nextcord
+from nextcord.ext import commands
 import json
+import os
 
 '''
-    Timetable 클래스는 timetable.json 의 이차원 딕셔너리 파일을 탐색합니다.
+    Timetable 클래스는 mysql.json 의 이차원 딕셔너리 파일을 탐색합니다.
     self.json[day][time] : 해당 요일과 시간대를 수강하는 학생의 정보를 딕셔너리로 받습니다.
     리턴 형식은 {"Student":값, "Class":값} 입니다.
 '''
 
+# 현재 실행 중인 파일의 절대 경로를 찾은 후, 이를 실행 경로로 설정함
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+# data 파일에 저장된 mysql.json 을 로딩
+with open('../data/mysql.json') as myf:
+    mysql = json.load(myf)
+
 
 class Timetable:
     def __init__(self):
-        with open('../data/timetable.json', encoding='utf8') as tf:
-            self.json = json.load(tf)
+        self.timetable = pymysql.connect(
+            host=mysql['host'],
+            user=mysql['user'],
+            password=mysql['password'],
+            db=mysql['db'],
+            charset='utf8'
+        )
+        # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
+        self.cursor = self.timetable.cursor(pymysql.cursors.DictCursor)
 
-    # 해당 수업 시간에 해당되는 학생의 정보 Dict[이름, 과목] 를 리턴하는 함수
-    def find_student(self, day: str, time: int) -> dict:
-        return self.json[day][time]
+    # 해당 학생의 수업 관련 정보를 리턴하는 함수
+    def find_student(self, student: nextcord.Member) -> dict[str, Any] | None:
+
+        # 입력 받은 학생의 수업 데이터 중, 이름과 과목 명만 SELECT 하여 불러옴
+        sql = "SELECT * FROM course where name = %s"
+        self.cursor.execute(sql, (student))
+        data = self.cursor.fetchall()
+
+        # cursor의 sql 구문을 통해 나온 데이터는 list 형태로 리턴
+        # list 의 요소는 Dict {'discordID': 'id', 'name': '이름', 'course': '과목', 'weekday', '요일', 'time': datetime}
+        if not data:
+            return None
+        # list 내부의 data 가 있다면 해당 data Dict 를 리턴
+        else:
+            return data[0]
+
+    # 해당 요일과 시간에 해당되는 정보를 리턴하는 함수
+    def find_course(self, day: str, time: str) -> dict[str, Any] | None:
+
+        # 먼저, 입력 받은 시간대에 다른 수업이 있는지를 SELECT로 탐색함
+        sql = "SELECT * FROM course where weekday = %s AND time = %s"
+        self.cursor.execute(sql, (day, time))
+        data = self.cursor.fetchall()
+
+        if not data:
+            return None
+        else:
+            return data[0]
 
     # 특정 수업 시간에 학생의 수강 정보를 집어 넣는 함수
-    # True 리턴 시 새롭게 정보를 추가했다는 뜻, False 리턴 시 기존의 정보가 있어 추가가 취소되었다는 뜻.
-    def add_student(self, day: str, time: str, student: str, lang: str) -> bool:
-        class_info = self.json[day][time]
-        if class_info["Student"] is None or class_info["Class"] is None:
-            self.json[day][time].update({"Student": student, "Class": lang})
-            self.reload()
-            return True
-        else:
-            return False
+    # True 리턴 시 정상적인 수강 정보 추가, False 리턴 시 시간표 겹침으로 인한 추가 실패 안내
+    def add_student(self, day: str, time: str, course: str, student: nextcord.Member) -> None:
+        # 새롭게 입력받은 정보를 정리하여 INSERT 로 추가함.
+        try:
+            sql = """INSERT INTO course(discordID, name, course, time, weekday) 
+                            values (%s, %s, %s, %s, %s)"""
+            self.cursor.execute(sql, (student.id, student, course, time, day))
+        # 이미 기존에 시간표가 설정된 경우, 다른 시간대로 강의 정보를 수정함
+        except pymysql.err.IntegrityError:
+            sql = "UPDATE course SET time = %s, weekday = %s WHERE name = %s"
+            self.cursor.execute(sql, (time, day, student))
+        finally:
+            self.timetable.commit()
 
     # 특정 수업 시간에 학생의 수강 정보를 삭제하는 함수
-    # True 리턴 시 정상적으로 정보 삭제, False 출력 시 삭제할 정보가 없다는 뜻.
-    def remove_student(self, day: str, time: str) -> bool:
-        class_info = self.json[day][time]
-        if class_info["Student"] is None or class_info["Class"] is None:
-            return False
-        else:
-            class_info.update({"Student": None, "Class": None})
-            self.reload()
-            return True
+    def remove_student(self, student: nextcord.Member) -> None:
+
+        # 입력 받은 학생의 데이터를 MySQL 에서 완전히 삭제시킴
+        sql = "DELETE FROM course where name = %s"
+        self.cursor.execute(sql, (student.nick))
+        self.timetable.commit()
 
     # 특정 요일의 시간표 정보를 List[Tuple(시간, 학생, 과목)] 으로 return 해주는 함수
-    def get_day_class(self, day: str) -> list:
-        class_list = self.json[day]
-        # info 변수는 {학생 이름 : 수강 언어} 값을 담은 Dict 타입
-        class_info = list((time, info["Student"], info["Class"]) for time, info in class_list.items())
-        return class_info
+    def get_day_class(self, day: str) -> tuple[dict[str, Any], ...] | None:
 
-    # 수정된 timetable 정보가 있다면, 이를 확인해 새롭게 timetable.json 을 작성함
-    def reload(self):
-        with open('../data/timetable.json', 'w', encoding='utf8') as f:
-            json.dump(self.json, f, indent=4, ensure_ascii=False)
+        # 입력 받은 학생의 수업 데이터 중, 이름과 과목 명만 SELECT 하여 불러옴
+        sql = "SELECT time, name, course FROM course where weekday = %s"
+        self.cursor.execute(sql, (day))
+        data = self.cursor.fetchall()
+
+        if not data:
+            return None
+        # list 내부의 data가 비어있지 않다면 정상적으로 list(dict) 를 리턴시킴
+        # list 의 요소는 Dict {'discordID': 'id', 'name': '이름', 'course': '과목', 'weekday', '요일', 'time': datetime}
+        else:
+            return data
+
+    def close_mysql(self):
+        self.timetable.commit()
+        self.timetable.close()

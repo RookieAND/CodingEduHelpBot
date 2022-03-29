@@ -1,4 +1,7 @@
+import json
+
 import nextcord
+from datetime import timedelta
 from nextcord.ui import View
 
 '''
@@ -118,7 +121,7 @@ class EmbedMessage:
             embed.add_field(name=':white_check_mark: 선택 완료', value=f'\n성공적으로 {lang} 과목을 선택했습니다!')
         return embed
 
-    def timetable_daily(self, class_info: list):
+    def timetable_daily(self, course_list: list):
         self.embed['title'] = ":alarm_clock:  수업 시간표 열람"
         self.embed['description'] = """
             선생님이 진행 중인 수업 시간표를 보여줄게요.
@@ -127,18 +130,14 @@ class EmbedMessage:
             """
 
         time_value = student_value = lang_value = ""
-        for time, student, lang in class_info:
-            time_value += f"⠀⠀  **{time}**시 수업\n"
-            if student is None or lang is None:
-                student_value += "⠀⠀  수강생 없음\n"
-                lang_value += "⠀⠀  정보 없음\n"
-            else:
-                student_value += f"⠀⠀  **{student}** 학생\n"
-                lang_value += f"⠀⠀  **{lang}**\n"
+        for course in course_list:
+            time_value += f"⠀⠀  **{course['time']}**시 수업\n"
+            student_value += f"⠀⠀  **{course['name']}**\n"
+            lang_value += f"⠀⠀  **{course['course']}**\n"
 
         embed = nextcord.Embed.from_dict(self.embed)
         embed.add_field(name=':one:  수업 시간⠀⠀⠀⠀', value=time_value)
-        embed.add_field(name=':two:  학생 이름⠀⠀⠀⠀', value=student_value)
+        embed.add_field(name=':two:  디스코드⠀⠀⠀⠀', value=student_value)
         embed.add_field(name=':three:  수강 과목⠀⠀⠀⠀', value=lang_value)
 
         return embed
@@ -157,7 +156,18 @@ class EmbedMessage:
         embed.add_field(name=':x: 열람 실패', value='\n올바른 요일을 작성하지 않았습니다.')
         return embed
 
-    def timetable_modify(self, class_info: list, status: str):
+    def timetable_daily_empty(self):
+        self.embed['title'] = ":alarm_clock:  수업 시간표 열람"
+        self.embed['description'] = """
+            음, 해당 요일에는 수업이 존재하지 않아요.
+            다른 요일에는 수업이 있을지도 모르겠네요!
+            ⠀⠀
+            """
+        embed = nextcord.Embed.from_dict(self.embed)
+        embed.add_field(name=':x: 열람 실패', value='\n해당 요일에는 수업 일정이 비어 있습니다.')
+        return embed
+
+    def timetable_modify(self, course_list: list, status: str):
         modify = {"add": "추가", "del": "삭제"}
         self.embed['title'] = ":alarm_clock:  수업 시간표 수정"
         self.embed['description'] = f"""
@@ -168,23 +178,47 @@ class EmbedMessage:
             성공적으로 시간표를 {modify[status]}했습니다!
             ⠀
             """
+        # 해당 요일의 시간표가 존재한다면, 관련 정보를 출력시킴.
+        if course_list:
+            time_value = student_value = lang_value = ""
+            for course in course_list:
+                time_value += f"⠀⠀  **{course['time']}**시 수업\n"
+                student_value += f"⠀⠀  **{course['name']}**\n"
+                lang_value += f"⠀⠀  **{course['course']}**\n"
 
-        time_value = student_value = lang_value = ""
+                embed = nextcord.Embed.from_dict(self.embed)
+                embed.add_field(name=':one:  수업 시간⠀⠀⠀⠀', value=time_value)
+                embed.add_field(name=':two:  디스코드⠀⠀⠀⠀', value=student_value)
+                embed.add_field(name=':three:  수강 과목⠀⠀⠀⠀', value=lang_value)
+        else:
+            embed = nextcord.Embed.from_dict(self.embed)
+            embed.add_field(name=':x: 수업 없음', value="\n해당 요일에는 더 이상 수업이 존재하지 않습니다.")
 
-        for time, student, lang in class_info:
-            time_value += f"⠀⠀  **{time}**시 수업\n"
-            if student is None or lang is None:
-                student_value += "⠀⠀  수강생 없음\n"
-                lang_value += "⠀⠀  정보 없음\n"
-            else:
-                student_value += f"⠀⠀  **{student}** 학생\n"
-                lang_value += f"⠀⠀  **{lang}**\n"
+        return embed
 
+    def timetable_add_failed(self, reason: str):
+        self.embed['title'] = ":alarm_clock:  시간표 추가 실패"
+        self.embed['description'] = """
+            이런... 명령어를 입력하는 과정에서 약간의
+            문제가 생긴 것 같아요. 다시 한번 양식들을
+            잘 읽어보시고 명령어를 재입력해주세요!
+
+            양식 : **[!timeadd <요일> <시간> <학생>]**
+
+            제대로 입력이 되었다면 수업이 추가될 거에요!
+            ⠀⠀
+            """
         embed = nextcord.Embed.from_dict(self.embed)
-        embed.add_field(name=':one:  수업 시간⠀⠀⠀⠀', value=time_value)
-        embed.add_field(name=':two:  학생 이름⠀⠀⠀⠀', value=student_value)
-        embed.add_field(name=':three:  수강 과목⠀⠀⠀⠀', value=lang_value)
-
+        if reason == "day":
+            embed.add_field(name=':x: 추가 실패', value="\n올바르지 않은 요일을 입력하였습니다.")
+        elif reason == "time":
+            embed.add_field(name=':x: 추가 실패', value="\n시간은 18시부터 22시까지 가능합니다.")
+        elif reason == "student":
+            embed.add_field(name=':x: 추가 실패', value="\n해당 학생은 서버에 존재하지 않습니다.")
+        elif reason == "course":
+            embed.add_field(name=':x: 추가 실패', value="\n해당 학생은 특정한 과목 역할이 없습니다.")
+        elif reason == "wrong":
+            embed.add_field(name=':x: 추가 실패', value="\n명령어 양식이 올바르지 않습니다.")
         return embed
 
     def timetable_modify_failed(self, status: str):
@@ -216,23 +250,6 @@ class EmbedMessage:
             embed.add_field(name=':x: 삭제 실패', value="\n해당 시간대에 수업이 존재하지 않습니다.")
         return embed
 
-    def timetable_modify_wrong(self):
-        self.embed['title'] = ":alarm_clock:  수업 시간표 수정"
-        self.embed['description'] = """
-            이런, 수정 명령어를 잘못 입력한 것 같아요!
-            다시 한번 양식을 보고 다시 한번 입력해봐요!
-
-            추가 : **[!timemod add <요일> <시간> <이름> <과목>]**
-            삭제 : **[!timemod del <요일> <시간>]**
-            
-            제대로 입력이 되었다면 수업이 수정될 거에요!
-            ⠀⠀
-            """
-        embed = nextcord.Embed.from_dict(self.embed)
-        embed.add_field(name=':x: 수정 실패', value="\n명령어 양식이 올바르지 않습니다.")
-
-        return embed
-
 
 class SelectClassView(View):
 
@@ -240,7 +257,9 @@ class SelectClassView(View):
         super().__init__()
         self.timeout = 10.0
         self.lang = None
-        self.role = {"Python": 947519272278708224, "MakeCode": 947517959474139146}
+        with open('../data/config.json') as f:
+            config = json.load(f)
+            self.role = {"Python": config['PYTHON_ROLE_ID'], "MakeCode": config['MAKECODE_ROLE_ID']}
         self.embed = EmbedMessage()
 
     @nextcord.ui.button(label='⠀⠀⠀⠀⠀⠀Python⠀⠀⠀⠀⠀⠀⠀', style=nextcord.ButtonStyle.primary)

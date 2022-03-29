@@ -1,5 +1,6 @@
-from src.custom import EmbedMessage
+from src.embed import EmbedMessage
 from nextcord.ext import commands
+from timetable import Timetable
 
 
 class BotEvents(commands.Cog):
@@ -16,6 +17,9 @@ class BotEvents(commands.Cog):
             trial_role = member.guild.get_role(950362342141595678)
             member.add_roles(trial_role)
 
+    @commands.Cog.listener()
+    async def on_disconnect(self):
+        Timetable.close_mysql()
 
 def setup(bot):
     bot.add_cog(BotEvents(bot))
