@@ -12,35 +12,36 @@ CodingEduHelpBot - 강의 도우미 봇
 
 * src/ 내부 파일	
     + main.py : Bot의 핵심적인 동작 기능을 판별
-    + timetable.py : 학생들의 시간표 안내 및 시간 별 수업 정보 제공
-    + custom.py : 봇에 쓰이는 Embed Message를 생성하고 호출
+    + timetable.py : 학생들의 시간표 안내 및 수업 정보 제공
+    + embed.py : 봇에 쓰이는 Embed Message를 생성하고 호출
     + command.py : 봇에 쓰이는 command 를 관리하고 실행
     + event.py : 디스코드의 각종 이벤트를 핸들링하고 관리
 
   
 * config/ 내부 파일
 	+ config.yml : 서버의 기본적인 정보 및 역할 ID 저장
-	+ timetable.yml : 저장된 timetable을 json 형식으로 유지
+	+ mysql.yml : mysql 서버 통신에 필요한 데이터 저장
 
 ## [세부 기능] ##
 #### 1. 지원 명령어 ####
 	
+    [Lesson 관련 명령어]
 	- !lesson author : 강사 소개
 	- !lesson question : 강사에게 질문 전송
 	- !lesson select : 수강하고자 하는 과목 역할 선택
-	
-	- !materials python : Python 수업을 하기 전, 실행해야 하는 프로그램을 안내합니다.
-	- !materials Makecode : MakeCode 수업을 하기 전, 실행해야 하는 프로그램을 안내합니다.
 
-	- !timetable <요일> : 특정 요일의 수업 시간을 반환	
-	- !timeadd <이름> <요일> <시간> : 특정 학생에게 시간표를 할당
-	- !timedel <이름> : 특정 학생에게 할당되었던 시간표를 제거
+    [Timetable 관련 명령어]
+	- !timetable show <요일> : 특정 요일의 수업 시간을 반환	
+	- !timetable add <요일> <시간> <이름> : 특정 학생에게 시간표를 할당
+	- !timetable remove <이름> : 특정 학생에게 할당되었던 시간표를 제거
 #### 2. 지원 이벤트 ####
 
 	- 새로운 학생이 서버에 접속했을 때, 안내 메세지를 출력시킵니다.
 	- 리액션 버튼을 통해 자신이 수강하는 수업에 따른 역할을 받습니다.
+    - 학생이 수업을 곧 시작해야 할 때, 채널에 멘션을 날립니다. (매 시각 55분마다)
 #### 3. 타임 테이블 ####
 
 	- 시간표를 새로이 할당할 경우, 해당 학생의 이름과 Discord ID를 연동합니다.
-	- 기존의 학생이 수업을 곧 시작해야 할때, 알림 채널에 메세지로 멘션을 날립니다. (5분 주기 체크)
-	- 저장된 타임 테이블은 json 형태로 보관되나, mongoDB 사용도 염두 중입니다.
+	- 시간표 DB 는 MySQL을 사용하여, 관련 라이브러리는 pymysql을 사용했습니다.
+    - DB의 속성은 [디스코드 ID, 요일, 시간, 디스코드 태그, 수강 언어] 입니다.
+    - 명령어를 통해 학생의 수업 정보를 자유롭게 추가, 수정, 삭제할 수 있습니다.
