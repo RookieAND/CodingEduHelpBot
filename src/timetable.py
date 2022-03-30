@@ -36,6 +36,7 @@ class Timetable:
             list 의 요소는 Dict {'discordID': 'id', 'name': '이름', 'course': '과목', 'weekday', '요일', 'time': datetime}
             list 내부의 data 가 있다면 해당 data Dict 를 리턴 """
         if data:
+            self.timetable.close()
             return data[0]
 
     # 해당 요일과 시간에 해당되는 수업 정보를 리턴하는 함수
@@ -47,6 +48,7 @@ class Timetable:
         data = self.cursor.fetchall()
 
         if data:
+            self.timetable.close()
             return data[0]
 
     # 특정 수업 시간에 학생의 수강 정보를 집어 넣는 함수
@@ -66,6 +68,7 @@ class Timetable:
 
         finally:
             self.timetable.commit()
+            self.timetable.close()
 
     # 특정 수업 시간에 학생의 수강 정보를 삭제하는 함수
     def remove_student(self, student: nextcord.Member) -> None:
@@ -74,6 +77,7 @@ class Timetable:
         sql = "DELETE FROM course where name = %s"
         self.cursor.execute(sql, (student.nick))
         self.timetable.commit()
+        self.timetable.close()
 
     # 특정 요일의 시간표 정보를 List[Tuple(시간, 학생, 과목)] 으로 return 해주는 함수
     def get_day_class(self, day: str) -> list[dict[str, Any], ...] | None:
@@ -84,6 +88,7 @@ class Timetable:
         data = self.cursor.fetchall()
 
         if data:
+            self.timetable.close()
             return data
 
     # 디스코드 봇 종료 시 MySQL 서버와의 통신을 종료하는 함수 (event / on_disconnect())
