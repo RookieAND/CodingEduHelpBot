@@ -1,6 +1,6 @@
 from src.embed import EmbedMessage
 from nextcord.ext import tasks, commands
-from timetable import Timetable
+from timetable import find_course
 import datetime
 
 
@@ -8,7 +8,6 @@ class BotEvents(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.embed = EmbedMessage()
-        self.timetable = Timetable()
         self.weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
 
     @commands.Cog.listener()
@@ -35,7 +34,7 @@ class BotEvents(commands.Cog):
         # 현재 요일과 시간을 구한 후, 해당 시간대에 수업이 있는지를 먼저 탐색함
         now = datetime.datetime.today()
         weekday = now.strftime("%a")  # 현재 시간에서 요일에 대한 정보를 로드함 (%a : Mon, Tue... , Sat, Sun)
-        class_info = self.timetable.find_course(weekday, now.hour + 1)
+        class_info = find_course(weekday, now.hour + 1)
 
         # 현재 요일 시간에 수업 정보가 있는지 먼저 확인하고, 정보가 있다면 메세지를 출력시킴
         if class_info:
