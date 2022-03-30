@@ -1,9 +1,8 @@
-from typing import Dict, Any, Tuple
+from typing import Any
 
 import pymysql
 import pymysql.cursors
 import nextcord
-import json
 import os
 
 '''
@@ -12,20 +11,14 @@ import os
     리턴 형식은 {"Student":값, "Class":값} 입니다.
 '''
 
-# 현재 실행 중인 파일의 절대 경로를 찾은 후, 이를 실행 경로로 설정함
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# data 파일에 저장된 mysql.json 을 로딩
-with open('../data/mysql.json') as myf:
-    mysql = json.load(myf)
-
 
 class Timetable:
     def __init__(self):
         self.timetable = pymysql.connect(
-            host=mysql['host'],
-            user=mysql['user'],
-            password=mysql['password'],
-            db=mysql['db'],
+            host=os.environ.get('host'),
+            user=os.environ.get('user'),
+            password=os.environ.get('password'),
+            db=os.environ.get('db'),
             charset='utf8'
         )
         # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
