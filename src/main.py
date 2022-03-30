@@ -3,6 +3,7 @@ from nextcord.ext import commands
 import json
 import os
 
+
 # 현재 실행 중인 파일의 절대 경로를 찾은 후, 이를 실행 경로로 설정함
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # data 파일에 저장된 config.json 을 로딩
@@ -18,14 +19,6 @@ bot = commands.Bot(command_prefix='!', help_command=None, activity=activity, int
 # 하위 목록으로 설정한 Bot Extension 을 로드하여 실행시킴.
 bot.load_extension('event')
 bot.load_extension('command')
-
-
-@bot.event
-async def on_ready():
-    print("=" * 41)
-    print("{0:^33}".format("코딩 교육 봇이 실행 중입니다."))
-    print("{0:^41}".format("Created By RookieAND_"))
-    print("=" * 41)
 
 # try-except 를 통해 token 값이 맞지 않을 경우 에러 메세지 출력
 if __name__ == "__main__":

@@ -88,11 +88,11 @@ class CommandTimetable(commands.Cog):
     # 시간표 추가 명령어 : [timetable add <요일> <시간> <학생>]
     @timetable.command(name="add", aliases=['a'])
     @commands.has_permissions(kick_members=True)
-    async def timetable_add(self, ctx: commands.Context, day: str = None, time: str = None, student: Member = None):
+    async def timetable_add(self, ctx: commands.Context, day: str = None, time: int = None, student: Member = None):
         if day is None or day not in self.weekday:
             reason = "day"
         else:
-            if time is None or (0 >= int(time) or int(time) >= 25):
+            if time is None or not (0 <= time <= 23):
                 reason = "time"
             else:
                 if student is None:
@@ -106,9 +106,9 @@ class CommandTimetable(commands.Cog):
                         )
                     else:
                         # self.role 내의 role id 중에서 해당 학생이 가진 id가 있다면 이를 list에 추가함.
-                        course = [role_id for role_id in self.role.keys() if student.get_role(int(role_id)) is not None]
+                        course = [role_id for role_id in self.role.keys() if student.get_role(int(role_id)) is not None][0]
                         if course:
-                            self.timetable.add_student(day, time, self.role[course[0]], student)
+                            self.timetable.add_student(day, time, self.role[course], student)
                             class_info = self.timetable.get_day_class(day)
                             await ctx.send(
                                 f"{ctx.author.mention} 님, 성공적으로 **{student}** 학생의 수업을 추가했어요!",
@@ -144,7 +144,7 @@ class CommandTimetable(commands.Cog):
                     embed=self.embed.timetable_modify_failed("del")
                 )
             return
-        await ctx.send(f"{ctx.author.mention} 님, 명령어 입력을 잘못한 것 같아요!.", embed=self.embed.timetable_modify_wrong())
+        await ctx.send(f"{ctx.author.mention} 님, 명령어 입력을 잘못한 것 같아요!.", embed=self.embed.timetable_add_failed('wrong'))
 
 
 def setup(bot):

@@ -1,7 +1,6 @@
 import json
 
 import nextcord
-from datetime import timedelta
 from nextcord.ui import View
 
 '''
@@ -39,8 +38,8 @@ class EmbedMessage:
             - **!lesson author** : 선생님의 자기 소개를 봅니다.
             - **!lesson info <lang>** : 과목 별 안내사항을 봅니다.
 
-            - **!timetable** : 일주일 간의 수업 시간표를 봅니다
-            - **!timetable <mon~fri>** : 요일 별 시간표를 봅니다.
+            - **!timetable show <mon~fri>** : 요일 별 시간표를 봅니다.
+            - **!timetable show <mon~fri>** : 요일 별 시간표를 봅니다.
 
             그 외에도 봇은 많은 명령어들을 지원하니, 한번 사용해보세요!
             ⠀
@@ -78,6 +77,23 @@ class EmbedMessage:
             ⠀
             '''
         return nextcord.Embed.from_dict(self.embed)
+
+    def notice(self, day: str, time: int, dateformat: str):
+        self.embed['title'] = f":loudspeaker:  {day} {time}시 수업 시작 알림"
+        self.embed['description'] = '''
+            수업이 시작되기 전에 미리 안내 메세지를 보냈어요.
+            이 안내 메세지는 수업 시작 **5분 전에** 발송됩니다!
+            
+            수업에 늦지 않도록 **사전 준비**를 마저 마쳐주세요.
+            **마이크, 스피커**가 잘 작동하는지도 확인 해주세요!
+            ⠀
+            '''
+        self.embed['footer']['text'] = "안내 발송 일자 : " + dateformat
+        embed = nextcord.Embed.from_dict(self.embed)
+        embed.add_field(name=':one:  Python⠀⠀', value="Python IDLE 프로그램 실행⠀⠀⠀⠀\n지난주 학습했던 내용 복습\n")
+        embed.add_field(name=':two:  MakeCode⠀⠀', value="Code Connection for Minecraft\nMinecraft Window Edition 실행\n")
+
+        return embed
 
     def select_lang_default(self):
         self.embed['title'] = ":speech_left:  수강 과목 선택"
@@ -175,7 +191,7 @@ class EmbedMessage:
             아래에 수정하신 시간표의 정보를 보여드릴게요!
             
             :white_check_mark: **{modify[status]} 완료**
-            성공적으로 시간표를 {modify[status]}했습니다!
+            성공적으로 해당 학생의 시간표를 {modify[status]}했습니다!
             ⠀
             """
         # 해당 요일의 시간표가 존재한다면, 관련 정보를 출력시킴.
@@ -231,7 +247,7 @@ class EmbedMessage:
     
                 삭제 : **[!timemod del <요일> <시간>]**
     
-                제대로 삭제이 되었다면 수업이 추기될 거에요!
+                제대로 삭제가 되었다면 수업이 추기될 거에요!
                 ⠀⠀
                 """
             embed = nextcord.Embed.from_dict(self.embed)
