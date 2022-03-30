@@ -85,7 +85,7 @@ def remove_student(student: nextcord.Member) -> None:
 
     # 입력 받은 학생의 데이터를 MySQL 에서 완전히 삭제시킴
     sql = "DELETE FROM course where name = %s"
-    cursor.execute(sql, (student.nick))
+    cursor.execute(sql, (student))
     timetable.commit()
     timetable.close()
 

@@ -39,7 +39,7 @@ class BotEvents(commands.Cog):
 
         # 현재 요일 시간에 수업 정보가 있는지 먼저 확인하고, 정보가 있다면 메세지를 출력시킴
         if class_info:
-            if class_info['time'] == now.hour + 1 and now.minute == 55:
+            if class_info['time'] == now.hour + 1 and now.minute >= 58:
                 guild = self.bot.get_guild(946376880595021854)
                 channel = guild.get_channel(os.environ.get('NOTICE_CHANNEL_ID'))
                 student = guild.get_member(int(class_info['discordID']))
