@@ -15,10 +15,10 @@ import os
 class Timetable:
     def __init__(self):
         self.timetable = pymysql.connect(
-            host=os.environ.get('host'),
-            user=os.environ.get('user'),
-            password=os.environ.get('password'),
-            db=os.environ.get('db'),
+            host=os.environ.get('MYSQL_HOST'),
+            user=os.environ.get('MYSQL_USER'),
+            password=os.environ.get('MYSQL_PW'),
+            db=os.environ.get('MYSQL_DB'),
             charset='utf8'
         )
         # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
