@@ -275,7 +275,7 @@ class SelectClassView(View):
         super().__init__()
         self.timeout = 10.0
         self.lang = None
-        self.role = {"Python": os.environ.get('PYTHON_ROLE_ID'), "MakeCode": os.environ.get('MAKECODE_ROLE_ID')}
+        self.role = {"Python": os.getenv('PYTHON_ROLE_ID'), "MakeCode": os.getenv('MAKECODE_ROLE_ID')}
         self.embed = EmbedMessage()
 
     @nextcord.ui.button(label='⠀⠀⠀⠀⠀⠀Python⠀⠀⠀⠀⠀⠀⠀', style=nextcord.ButtonStyle.primary)

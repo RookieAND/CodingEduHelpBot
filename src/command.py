@@ -3,6 +3,8 @@ from nextcord.ext import commands
 from nextcord import Member
 from timetable import *
 
+import asyncio
+
 
 class CommandLesson(commands.Cog):
     def __init__(self, bot):
@@ -48,7 +50,7 @@ class CommandTimetable(commands.Cog):
         self.bot = bot
         self.embed = EmbedMessage()
         self.weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
-        self.role = {os.environ.get('PYTHON_ROLE_ID'): "Python", os.environ.get('MAKECODE_ROLE_ID'): "MakeCode"}
+        self.role = {os.getenv('PYTHON_ROLE_ID'): "Python", os.getenv('MAKECODE_ROLE_ID'): "MakeCode"}
 
     @commands.group(name="timetable", aliases=['tt', 'ttable'])
     async def timetable(self, ctx: commands.Context):
@@ -104,6 +106,7 @@ class CommandTimetable(commands.Cog):
                         course = [role_id for role_id in self.role.keys() if student.get_role(int(role_id)) is not None][0]
                         if course:
                             add_student(day, time, self.role[course], student)
+                            await asyncio.sleep(1)
                             class_info = get_day_class(day)
                             await ctx.send(
                                 f"{ctx.author.mention} 님, 성공적으로 **{student}** 학생의 수업을 추가했어요!",

@@ -41,7 +41,7 @@ class BotEvents(commands.Cog):
         if class_info:
             if class_info['time'] == now.hour + 1 and now.minute >= 58:
                 guild = self.bot.get_guild(946376880595021854)
-                channel = guild.get_channel(os.environ.get('NOTICE_CHANNEL_ID'))
+                channel = guild.get_channel(int(os.getenv('NOTICE_CHANNEL_ID')))
                 student = guild.get_member(int(class_info['discordID']))
                 await channel.send(
                     f"{student.mention} 님! 곧 {class_info['time']}시에 수업이 시작하니 미리 준비를 마쳐주세요!",
