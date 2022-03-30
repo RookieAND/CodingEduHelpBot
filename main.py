@@ -7,7 +7,7 @@ import os
 # 현재 실행 중인 파일의 절대 경로를 찾은 후, 이를 실행 경로로 설정함
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # data 파일에 저장된 config.json 을 로딩
-with open('../data/config.json') as f:
+with open('data/config.json') as f:
     config = json.load(f)
 
 
