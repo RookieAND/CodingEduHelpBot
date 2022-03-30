@@ -1,4 +1,4 @@
-import json
+import os
 
 from embed import EmbedMessage, SelectClassView
 from nextcord.ext import commands
@@ -51,9 +51,7 @@ class CommandTimetable(commands.Cog):
         self.embed = EmbedMessage()
         self.timetable = Timetable()
         self.weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
-        with open('../data/config.json') as f:
-            config = json.load(f)
-            self.role = {config['PYTHON_ROLE_ID']: "Python", config['MAKECODE_ROLE_ID']: "MakeCode"}
+        self.role = {os.environ.get('PYTHON_ROLE_ID'): "Python", os.environ.get('MAKECODE_ROLE_ID'): "MakeCode"}
 
     @commands.group(name="timetable", aliases=['tt', 'ttable'])
     async def timetable(self, ctx: commands.Context):
