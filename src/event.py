@@ -2,6 +2,7 @@ from src.embed import EmbedMessage
 from nextcord.ext import tasks, commands
 from timetable import find_course
 import datetime
+import os
 
 
 class BotEvents(commands.Cog):
@@ -40,7 +41,7 @@ class BotEvents(commands.Cog):
         if class_info:
             if class_info['time'] == now.hour + 1 and now.minute == 55:
                 guild = self.bot.get_guild(946376880595021854)
-                channel = guild.get_channel(951326352366260264)
+                channel = guild.get_channel(os.environ.get('NOTICE_CHANNEL_ID'))
                 student = guild.get_member(int(class_info['discordID']))
                 await channel.send(
                     f"{student.mention} 님! 곧 {class_info['time']}시에 수업이 시작하니 미리 준비를 마쳐주세요!",

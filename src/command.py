@@ -1,5 +1,3 @@
-import os
-
 from embed import EmbedMessage, SelectClassView
 from nextcord.ext import commands
 from nextcord import Member
