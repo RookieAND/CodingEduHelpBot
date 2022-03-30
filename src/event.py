@@ -28,11 +28,6 @@ class BotEvents(commands.Cog):
             trial_role = member.guild.get_role(950362342141595678)
             member.add_roles(trial_role)
 
-    # 봇이 역할을 종료할 시, MySQL의 연결을 종료하는 함수 실행
-    @commands.Cog.listener()
-    async def on_disconnect(self):
-        self.timetable.close_mysql()
-
     # @tasks.loop(time=datetime.time(minute=55)) -> 버그로 인해 잠시 사용 중단
     @tasks.loop(seconds=60.0)
     async def notice_course(self):

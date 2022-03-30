@@ -3,7 +3,7 @@ import os
 from embed import EmbedMessage, SelectClassView
 from nextcord.ext import commands
 from nextcord import Member
-from timetable import Timetable
+from timetable import *
 
 
 class CommandLesson(commands.Cog):
@@ -24,7 +24,7 @@ class CommandLesson(commands.Cog):
         await ctx.send(f"{ctx.author.mention} 님, 지금부터 선생님에 대한 소개를 하겠습니다.", embed=self.embed.introduce())
 
     @lesson.command(name="question")
-    async def lesson_author(self, ctx: commands.Context):
+    async def lesson_question(self, ctx: commands.Context):
         await ctx.send(f"{ctx.author.mention} 님! 선생님에게 질문할 내용이 있으신가 보군요?", embed=self.embed.question())
 
     @lesson.command(name="select")
@@ -49,7 +49,6 @@ class CommandTimetable(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.embed = EmbedMessage()
-        self.timetable = Timetable()
         self.weekday = {'Mon': "월요일", 'Tue': "화요일", 'Wed': "수요일", 'Thu': "목요일", 'Fri': "금요일"}
         self.role = {os.environ.get('PYTHON_ROLE_ID'): "Python", os.environ.get('MAKECODE_ROLE_ID'): "MakeCode"}
 
@@ -68,7 +67,7 @@ class CommandTimetable(commands.Cog):
                 f"{ctx.author.mention} 님, 시간표를 열람할 요일을 입력해주세요!", embed=self.embed.timetable_daily_failed()
             )
         elif day in self.weekday:
-            class_info = self.timetable.get_day_class(day)
+            class_info = get_day_class(day)
             if class_info is not None:
                 await ctx.send(
                     f"{ctx.author.mention} 님, **{self.weekday[day]}**의 시간표를 가져왔어요! 한번 봐주세요!",
@@ -96,7 +95,7 @@ class CommandTimetable(commands.Cog):
                 if student is None:
                     reason = "student"
                 else:
-                    course_info = self.timetable.find_course(day, time)
+                    course_info = find_course(day, time)
                     if course_info:
                         await ctx.send(
                             f"{ctx.author.mention} 님, 해당 시간대에는 이미 다른 수업이 존재해요!",
@@ -106,8 +105,8 @@ class CommandTimetable(commands.Cog):
                         # self.role 내의 role id 중에서 해당 학생이 가진 id가 있다면 이를 list에 추가함.
                         course = [role_id for role_id in self.role.keys() if student.get_role(int(role_id)) is not None][0]
                         if course:
-                            self.timetable.add_student(day, time, self.role[course], student)
-                            class_info = self.timetable.get_day_class(day)
+                            add_student(day, time, self.role[course], student)
+                            class_info = get_day_class(day)
                             await ctx.send(
                                 f"{ctx.author.mention} 님, 성공적으로 **{student}** 학생의 수업을 추가했어요!",
                                 embed=self.embed.timetable_modify(class_info, "add")
@@ -128,10 +127,10 @@ class CommandTimetable(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def timetable_remove(self, ctx: commands.Context, student: Member = None):
         if student is not None:
-            course_info = self.timetable.find_student(student)
+            course_info = find_student(student)
             if course_info is not None:
-                self.timetable.remove_student(student)
-                class_info = self.timetable.get_day_class(course_info['weekday'])
+                remove_student(student)
+                class_info = get_day_class(course_info['weekday'])
                 await ctx.send(
                     f"{ctx.author.mention} 님, 성공적으로 **{student.nick} 학생** 의 수업을 삭제했어요!",
                     embed=self.embed.timetable_modify(class_info, "del")

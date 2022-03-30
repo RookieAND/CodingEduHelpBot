@@ -1,4 +1,4 @@
-import json
+import os
 
 import nextcord
 from nextcord.ui import View
@@ -206,11 +206,11 @@ class EmbedMessage:
                 embed.add_field(name=':one:  수업 시간⠀⠀⠀⠀', value=time_value)
                 embed.add_field(name=':two:  디스코드⠀⠀⠀⠀', value=student_value)
                 embed.add_field(name=':three:  수강 과목⠀⠀⠀⠀', value=lang_value)
+                return embed
         else:
             embed = nextcord.Embed.from_dict(self.embed)
             embed.add_field(name=':x: 수업 없음', value="\n해당 요일에는 더 이상 수업이 존재하지 않습니다.")
-
-        return embed
+            return embed
 
     def timetable_add_failed(self, reason: str):
         self.embed['title'] = ":alarm_clock:  시간표 추가 실패"
@@ -252,6 +252,8 @@ class EmbedMessage:
                 """
             embed = nextcord.Embed.from_dict(self.embed)
             embed.add_field(name=':x: 수정 실패', value="\n이미 해당 시간대에 수업이 존재합니다.")
+            return embed
+
         elif status == "del":
             self.embed['description'] = """
                 이미 해당 시간대에는 수업이 없는 상태에요...
@@ -264,7 +266,7 @@ class EmbedMessage:
                 """
             embed = nextcord.Embed.from_dict(self.embed)
             embed.add_field(name=':x: 삭제 실패', value="\n해당 시간대에 수업이 존재하지 않습니다.")
-        return embed
+            return embed
 
 
 class SelectClassView(View):
@@ -273,9 +275,7 @@ class SelectClassView(View):
         super().__init__()
         self.timeout = 10.0
         self.lang = None
-        with open('../data/config.json') as f:
-            config = json.load(f)
-            self.role = {"Python": config['PYTHON_ROLE_ID'], "MakeCode": config['MAKECODE_ROLE_ID']}
+        self.role = {"Python": os.environ.get('PYTHON_ROLE_ID'), "MakeCode": os.environ.get('MAKECODE_ROLE_ID')}
         self.embed = EmbedMessage()
 
     @nextcord.ui.button(label='⠀⠀⠀⠀⠀⠀Python⠀⠀⠀⠀⠀⠀⠀', style=nextcord.ButtonStyle.primary)
