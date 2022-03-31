@@ -24,14 +24,18 @@ class BotEvents(commands.Cog):
         # 봇 작동을 위해 필요한 DB Table이 있는지를 체크
         check_table_exist()
 
-    # 학생이 서버에 처음 들어올 때, Trial Student 역할을 지급함
+    # 학생이 서버에 처음 들어올 때, Trial Student 역할을 지급하고 환영 메세지를 보냄
     @commands.Cog.listener()
     async def on_member_join(self, member):
         channel = member.guild.system_channel
         if channel is not None:
             channel.send(embed=self.embed.welcome())
-            trial_role = member.guild.get_role(950362342141595678)
+            trial_role = member.guild.get_role(int(os.getenv('TRIAL_STUDENT_ROLE_ID')))
             member.add_roles(trial_role)
+            await channel.send(
+                f"{member.mention} 님! 코딩 교육 디스코드 서버에 오신 것을 환영합니다!",
+                embed=self.embed.welcome()
+            )
 
     @tasks.loop(seconds=60.0)
     async def notice_course(self):
