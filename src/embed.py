@@ -137,8 +137,8 @@ class EmbedMessage:
             embed.add_field(name=':white_check_mark: 선택 완료', value=f'\n성공적으로 {lang} 과목을 선택했습니다!')
         return embed
 
-    def timetable_daily(self, course_list: list):
-        self.embed['title'] = ":alarm_clock:  수업 시간표 열람"
+    def timetable_daily(self, course_list: list, weekday: str):
+        self.embed['title'] = f":alarm_clock: {weekday} 수업 시간표 열람"
         self.embed['description'] = """
             선생님이 진행 중인 수업 시간표를 보여줄게요.
             잘 보고 나서 당일 수업에 늦지 않도록 해요!

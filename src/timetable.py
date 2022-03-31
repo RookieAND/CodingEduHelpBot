@@ -20,27 +20,45 @@ def connect_mysql() -> tuple:
     return timetable, cursor
 
 
+def check_table_exist() -> None:
+    timetable, cursor = connect_mysql()
+
+    sql = "SHOW TABLES LIKE 'course'"
+    cursor.execute(sql)
+    is_exist = cursor.fetchone()
+
+    # 만약 course 테이블이 존재하지 않는다면, 이를 새롭게 생성시켜줌
+    if not is_exist:
+        sql = """CREATE TABLE course (
+                 discordID VARCHAR(20) NOT NULL,
+                 name VARCHAR(20) NOT NULL,
+                 course VARCHAR(10) NOT NULL,
+                 time INT NOT NULL,
+                 weekday VARCHAR(10) NOT NULL,  
+                 PRIMARY KEY(discordID)
+                ) ENGINE=INNODB CHARSET=utf8"""
+        cursor.execute(sql)
+
+
 # 해당 학생이 현재 수강 중인 수업 정보를 리턴하는 함수
 def find_student(student: nextcord.Member) -> dict[str, Any] | None:
-
     timetable, cursor = connect_mysql()
 
     # 입력 받은 학생의 수업 데이터 중, 이름과 과목 명만 SELECT 하여 불러옴
     sql = "SELECT * FROM course where name = %s"
     cursor.execute(sql, (student))
-    data = cursor.fetchall()
+    data = cursor.fetchone()
     timetable.close()
 
     """ cursor의 sql 구문을 통해 나온 데이터는 list 형태로 리턴
         list 의 요소는 Dict {'discordID': 'id', 'name': '이름', 'course': '과목', 'weekday', '요일', 'time': '시간'}
         list 내부의 data 가 있다면 해당 data Dict 를 리턴 """
     if data:
-        return data[0]
+        return data
 
 
 # 해당 요일과 시간에 해당되는 수업 정보를 리턴하는 함수
 def find_course(day: str, time: int) -> dict[str, Any] | None:
-
     # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
     timetable, cursor = connect_mysql()
 
@@ -57,7 +75,6 @@ def find_course(day: str, time: int) -> dict[str, Any] | None:
 # 특정 수업 시간에 학생의 수강 정보를 집어 넣는 함수
 # True 리턴 시 정상적인 수강 정보 추가, False 리턴 시 시간표 겹침으로 인한 추가 실패 안내
 def add_student(day: str, time: int, course: str, student: nextcord.Member) -> None:
-
     # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
     timetable, cursor = connect_mysql()
 
@@ -79,7 +96,6 @@ def add_student(day: str, time: int, course: str, student: nextcord.Member) -> N
 
 # 특정 수업 시간에 학생의 수강 정보를 삭제하는 함수
 def remove_student(student: nextcord.Member) -> None:
-
     # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
     timetable, cursor = connect_mysql()
 
@@ -92,12 +108,11 @@ def remove_student(student: nextcord.Member) -> None:
 
 # 특정 요일의 시간표 정보를 List[dict{ data... }] 으로 return 해주는 함수
 def get_day_class(day: str) -> tuple[dict[str, Any], ...]:
-
     # MySQL 의 Data 를 Dict 형태로 반환 시키는 DictCursor 사용
     timetable, cursor = connect_mysql()
 
     # 입력 받은 학생의 수업 데이터 중, 이름과 과목 명만 SELECT 하여 불러옴 (시간 순서대로 정렬)
-    sql = "SELECT time, name, course FROM course where weekday = %s ORDER BY time DESC"
+    sql = "SELECT time, name, course FROM course where weekday = %s ORDER BY time"
     cursor.execute(sql, (day))
     data = cursor.fetchall()
     timetable.close()

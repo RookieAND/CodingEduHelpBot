@@ -71,7 +71,7 @@ class CommandTimetable(commands.Cog):
             if class_info is not None:
                 await ctx.send(
                     f"{ctx.author.mention} 님, **{self.weekday[day]}**의 시간표를 가져왔어요! 한번 봐주세요!",
-                    embed=self.embed.timetable_daily(class_info)
+                    embed=self.embed.timetable_daily(class_info, self.weekday[day])
                 )
             else:
                 await ctx.send(
@@ -106,7 +106,6 @@ class CommandTimetable(commands.Cog):
                         course = [role_id for role_id in self.role.keys() if student.get_role(int(role_id)) is not None][0]
                         if course:
                             add_student(day, time, self.role[course], student)
-                            await asyncio.sleep(1)
                             class_info = get_day_class(day)
                             await ctx.send(
                                 f"{ctx.author.mention} 님, 성공적으로 **{student}** 학생의 수업을 추가했어요!",
